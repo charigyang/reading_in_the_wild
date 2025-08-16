@@ -140,17 +140,14 @@ for gaia_id in _GAIA_IDS:
 
     rgb_save_path = os.path.join(_PROCESSED_DATA_DIR, 'rgb_crop_small', gaia_id)
     os.makedirs(rgb_save_path, exist_ok=True)
-    previous_image_array = None
-    for sample_idx, sample_time in enumerate(gaze["tracking_timestamp_us"].to_numpy()):
+    for sample_idx, sample_time in enumerate(gaze["tracking_timestamp_us"].to_numpy()[::2]):
         image_tuple = provider.get_image_data_by_time_ns(rgb_stream_id, sample_time * 1000, time_domain, option)
         image_array = image_tuple[0].to_numpy_array()
-        if np.all(image_array != previous_image_array): #don't repeat
-            image = Image.fromarray(image_array)
-            image = image.rotate(-90)
+        image = Image.fromarray(image_array)
+        image = image.rotate(-90)
 
-            x_ = 1408 - np.clip(int(proj_x[sample_idx]), crop_size//2, 1408-crop_size//2)
-            y_ = np.clip(int(proj_y[sample_idx]), crop_size//2, 1408-crop_size//2)
-            
-            image = image.crop((x_-crop_size//2, y_-crop_size//2, x_+crop_size//2, y_+crop_size//2))
-            image.save(os.path.join(rgb_save_path, str(sample_idx) + '.png'))
-            previous_image_array = image_array
+        x_ = 1408 - np.clip(int(proj_x[sample_idx]), crop_size//2, 1408-crop_size//2)
+        y_ = np.clip(int(proj_y[sample_idx]), crop_size//2, 1408-crop_size//2)
+        
+        image = image.crop((x_-crop_size//2, y_-crop_size//2, x_+crop_size//2, y_+crop_size//2))
+        image.save(os.path.join(rgb_save_path, str(sample_idx*2) + '.png'))
